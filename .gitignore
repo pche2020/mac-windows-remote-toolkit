@@ -1,0 +1,8 @@
+# Logs produced by the .bat tools on the Windows desktop
+ComfyUI模式切换日志.txt
+*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
