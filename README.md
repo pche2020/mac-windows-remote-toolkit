@@ -1,6 +1,6 @@
 # Mac + AI 助手直连 Windows：远程操控、ComfyUI 局域网与 MiniMax H3 本地生视频工具包
 
-![Mac 轻装上阵，算力留在家里](assets/cover.webp)
+![Mac 带出门，AI 在家跑](assets/cover.webp)
 
 让一台 Windows 电脑 24 小时开机待命：人在 Mac 上远程桌面操作它，AI 助手用 SSH 直接操作它（启停服务、跑 ComfyUI、传文件），在家里走局域网、在外面走 Tailscale 加密通道，**全程不暴露任何公网端口**。上面跑的是 MiniMax H3，本地生视频：16G 显存走 INT8 量化就能跑，1280×736、5 秒已跑通（步骤见 `docs/h3-deployment.md`）。
 
