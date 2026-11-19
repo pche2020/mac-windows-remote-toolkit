@@ -5,8 +5,8 @@
 > Claude Code / Codex / Antigravity 会自动读取仓库根目录的 `AGENTS.md`；LobsterAI 按底层 OpenClaw 的机制读取工作区里的 `AGENTS.md`；
 > 其他 agent（Grok Bot、豆包工作、WorkBuddy）请把本文件全文发给它，再附上文末的「启动词」。
 > 场景：一位新手用户把本工具包交给你，请你在他的电脑上装好「Mac + AI 助手直连 Windows」这套远程操控配置（架构与原理见同仓库《docs/setup-guide.md》）。
-> 你的任务：按下面阶段 A→F 顺序执行，能自动做的全做完；只能由用户本人做的动作，停下来用一句话告诉他点哪里、输入什么，等他做完再继续。
-> 配套文件都在本仓库内：Windows 侧一键脚本 `scripts/setup-windows.ps1`、后端核心脚本 `scripts/comfy-backend.ps1`、4 个桌面模式工具 `scripts/*.bat`、配置文档 `docs/setup-guide.md`、故障速查 `docs/troubleshooting.md`。
+> 你的任务：按下面阶段 A→F 顺序执行（H3 部署见可选阶段 G），能自动做的全做完；只能由用户本人做的动作，停下来用一句话告诉他点哪里、输入什么，等他做完再继续。
+> 配套文件都在本仓库内：Windows 侧一键脚本 `scripts/setup-windows.ps1`、后端核心脚本 `scripts/comfy-backend.ps1`、4 个桌面模式工具 `scripts/*.bat`、配置文档 `docs/setup-guide.md`、故障速查 `docs/troubleshooting.md`、H3 部署 `docs/h3-deployment.md`（可选阶段 G）。
 
 ---
 
@@ -79,6 +79,17 @@
 - [ ] 4 个模式工具都在 Windows 公共桌面、双账号登录都可见；
 - [ ] 向用户交代「报错协议」：以后工具出问题，他只需说一句「报错了」，由智能体读同目录日志定位处理；
 - [ ] 向用户交代唯一需要他维护的事：两台电脑的 Tailscale 保持登录在线。
+
+---
+
+## 阶段 G（可选）：本地部署 MiniMax H3
+
+按 `docs/h3-deployment.md` 操作：装 ComfyUI Desktop → 点 H3 的 T2V 模板下载模型 → R2V 另下 ref2va 模型与 turbo LoRA → 分辨率定 0.9、步数固定 20 步 → R2V 接线（ref_video 是 IMAGE，参考视频先拆帧）→ 换人走两段式。
+
+- 模型文件几十 GB，开始下载前跟用户确认存放磁盘。
+- 渲染分工按 `docs/h3-deployment.md` 第 7 节：小样 Mac 本地出、批量长段 Windows 并行、最终 Mac 定稿。
+
+**验收**：T2V 跑通 5 秒成片；R2V 两段式跑通，人物未漂移、背景已换、动作保留。
 
 ---
 

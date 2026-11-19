@@ -2,7 +2,7 @@
 
 ![Mac 轻装上阵，算力留在家里](assets/cover.webp)
 
-让一台 Windows 电脑 24 小时开机待命：人在 Mac 上远程桌面操作它，AI 助手用 SSH 直接操作它（启停服务、跑 ComfyUI、传文件），在家里走局域网、在外面走 Tailscale 加密通道，**全程不暴露任何公网端口**。
+让一台 Windows 电脑 24 小时开机待命：人在 Mac 上远程桌面操作它，AI 助手用 SSH 直接操作它（启停服务、跑 ComfyUI、传文件），在家里走局域网、在外面走 Tailscale 加密通道，**全程不暴露任何公网端口**。上面跑的是 MiniMax H3，本地生视频，部署步骤见 `docs/h3-deployment.md`。
 
 这套配置 2026-10-20 ~ 2026-10-21 实战搭建、逐项实测通过，所有踩过的坑都记进了 `docs/troubleshooting.md`。
 
@@ -14,6 +14,7 @@
 - **人在家**：Mac 上双击远程桌面直连 Windows；浏览器打开 `http://<Windows 局域网 IP>:8188` 就是 ComfyUI。
 - **人在外面**：Mac 先连上 Tailscale，远程桌面和 ComfyUI 网页照常用（地址换成 Tailscale 的 100.x 地址），和在家没有区别。
 - **AI 助手**：通过 SSH（走 Tailscale）直接在 Windows 上执行命令、启停 ComfyUI 后端、提交生成任务、取回成片——不需要你守在电脑前，也不需要经过 Mac 中转。
+- **本地跑 MiniMax H3 生视频**：ComfyUI + INT8 量化，1280×736、5 秒已跑通；R2V 换人走两段式（步骤见 `docs/h3-deployment.md`）。
 - **安全**：没有任何端口暴露在公网上。所有通道只在「你的局域网」和「你自己的 Tailscale 私有网络」里开放。
 
 ![ComfyUI 在 Windows 上跑，Mac 浏览器操作](assets/comfyui-remote.webp)
@@ -37,6 +38,22 @@
 - **经常出差、但重活离不开台式机**：轻装出门，算力留在家里。
 - **Mac 剪辑、Windows 渲染的分工**：小样在 Mac 上出，正式版扔给 Windows 慢慢渲，Mac 继续剪下一条。
 - **想让 AI 助手半夜替你干活**：任务发过去，早上验收就行。
+
+## 本地部署 MiniMax H3
+
+![本地用 MiniMax H3 生视频](assets/h3-generation.webp)
+
+MiniMax H3（2026 年 8 月开源，约 33B，全模态、原生带音频）：本地开源的只有 H3-Base，输出上限约 768p；想出 2K 得走官方 API。
+
+- 硬件：16G 显存 + 32G 内存走 INT8 量化能跑，1280×736、5 秒已跑通；M 系列 428B 即使 64G 内存也扛不动，本地视频主力就是 H3。
+- 部署：ComfyUI Desktop 点 H3 的 T2V 模板，约 53GB 模型一次下完；R2V 另下 ref2va 模型约 19GB + turbo LoRA 约 1.82GB。
+- 定论：分辨率定 0.9（1280×736），步数原生固定 20 步；R2V 的 ref_video 是 IMAGE 不是 VIDEO；换人必须两段式。
+
+![Mac 剪辑、Windows 渲染的分工](assets/h3-rendering.webp)
+
+- 渲染分工：小样 Mac 本地出，批量长段扔 Windows 并行渲，最终定稿回 Mac；NVENC 实测比 Mac 快约 1.4–1.5 倍，但隧道传 30MB 要 2–5 分钟，小文件来回传反而更慢。
+
+完整步骤、耗时实测与坑见 `docs/h3-deployment.md`。
 
 ## 注意点与弊端
 
@@ -75,10 +92,11 @@ mac-windows-remote-toolkit/
 ├── README.md                  # 你正在读的这份：总览与两种用法
 ├── AGENTS.md                  # 给 agent 读的执行手册（阶段 A→F + 启动词）
 ├── LICENSE                    # MIT
-├── assets/                    # 配图（封面、架构、ComfyUI 远程、工具包、优势、场景）
+├── assets/                    # 配图（封面、架构、ComfyUI 远程、工具包、优势、场景、H3 生成、H3 渲染）
 ├── docs/
 │   ├── setup-guide.md         # 配置文档：从零到跑通的每一步与排障
-│   └── troubleshooting.md     # 故障速查台账：全部踩坑记录（症状 → 根因 → 解法）
+│   ├── troubleshooting.md     # 故障速查台账：全部踩坑记录（症状 → 根因 → 解法）
+│   └── h3-deployment.md       # H3 部署：MiniMax H3 本地部署 + Mac/Windows 渲染分工
 └── scripts/
     ├── setup-windows.ps1      # Windows 一键配置（OpenSSH、RDP、自启、看门狗、防火墙收口）
     ├── comfy-backend.ps1      # ComfyUI 后端核心控制脚本（start / stop / status）
@@ -106,7 +124,6 @@ mac-windows-remote-toolkit/
 ## 不包含什么
 
 - **ComfyUI 本体与模型文件**：请从官网安装 ComfyUI Desktop、自行下载模型。本仓库只含配置与控制脚本。
-- **MiniMax H3 本地部署**：另篇再说，不在本文档范围。
 
 ## 报错协议
 
