@@ -28,12 +28,12 @@
 ## 阶段 A：环境自检（只读，零修改）
 
 在 Windows 电脑上收集并报告：
-- Windows 版本与版本类型（**专业版/企业版才有 RDP 服务端**；家庭版 → 跳到本阶段末尾的降级说明）；
-- GPU 型号、显存、驱动版本（跑 ComfyUI 本地模型建议 NVIDIA 显卡 ≥8GB 显存）；
-- 内存、各磁盘剩余空间（ComfyUI + 一套视频模型约需 60GB 以上，优先空间最富余的盘）；
+- Windows 版本与版本类型（RDP 主机按专业版或企业版配置，家庭版见本阶段末尾的降级说明）；
+- GPU 型号、显存、驱动版本（按目标模型核验，H3 硬件要求待核）；
+- 内存、各磁盘剩余空间（按实际模板下载量及产物预留空间，优先空间最富余的盘）；
 - 现状盘点：是否已装 Tailscale、ComfyUI Desktop、OpenSSH Server；是否已有管理员本地账号。
 
-**降级说明（家庭版或配置不足时）**：向用户说明少掉的只有「远程桌面」一项，SSH 直连、ComfyUI 网页操控、自启与看门狗都可照常装；得到用户确认后再继续，并跳过后续 RDP 相关步骤。
+**降级说明**：家庭版跳过 RDP 与文件夹重定向，按配置指南第 3、5 章分别处理 SSH 和 ComfyUI。一键脚本的 `-SkipRdpUser` 只跳过建账号，仍会尝试配置 RDP。模型运行条件不足时单独跳过 ComfyUI，得到用户确认后再继续。
 
 ## 阶段 B：需要用户本人先做的两件事（你只引导）
 
@@ -47,46 +47,46 @@
 - 涉及**给 rdp 账号设密码**时：停下来，让用户本人输入，你背过身去（不要读取、不要记录）。
 - 脚本报错时：先查台账条目 1、5、9；不要改脚本参数重试。
 
-**本阶段验收**（全过才继续）：
-- 本机 `http://localhost:8189/system_stats` 能返回（后端在跑）；
+**本阶段验收**（按已选功能验收，全过才继续）：
+- 按配置指南同步自定义路径后启动后端，本机 `http://localhost:8189/system_stats` 返回 HTTP 200；
 - 计划任务里有后端自启与看门狗两项；
-- 防火墙 RDP 规则的放行范围只含 Tailscale 网段与局域网网段。
+- 核对 SSH、RDP 和 8188 生效入站规则的来源范围，并验证 SSH 服务端仅公钥登录。
 
 ## 阶段 D：ComfyUI 目录与后端定型
 
 按《docs/setup-guide.md》第 5 章处理（要点复述，防你漏读）：
 - 后端唯一入口是 `comfy-backend.ps1`，启动参数固定 `--port 8189 --input-directory <Shared>\input --output-directory <Shared>\output`，**不要加 `--base-directory`**；
-- 安装目录 `models` 下 `diffusion_models / loras / vae / text_encoders` 四个目录用**目录联接**指向 Shared 对应目录（原目录先改名 `*_bak` 备份，不删除）；
-- 对外端口走 portproxy `8188 → localhost:8189`（8188 被 IP Helper 占用是正常现象，台账条目 1）。
+- 安装目录 `models` 下 `diffusion_models / loras / vae / text_encoders` 四个目录用**目录联接**指向 `<Shared>\models` 对应目录，保留 `*_bak` 与可能出现的 `*_old_…`，回退见配置指南第 5.2 节；
+- 局域网与 Tailnet 入口走 Windows 主机内的 portproxy `8188 → localhost:8189`（8188 被 IP Helper 占用是正常现象，台账条目 1）。
 
-**验收**：局域网另一台设备打开 `http://<Windows局域网IP>:8188` 能进 ComfyUI 界面，工作流里模型不报 Missing（报了就在 Issues 面板点 Refresh）。
+**验收**：局域网另一台设备打开 `http://<Windows局域网IP>:8188` 能进 ComfyUI 界面，工作流里模型不报 Missing（先核对联接目标和模型文件，再在 Issues 面板点 Refresh）。
 
-## 阶段 E：Mac 侧配置（若你在 Mac 上执行，或指导用户在 Mac 的智能体继续）
+## 阶段 E：Mac 侧配置（家庭版跳过 RDP 与重定向）
 
 1. Mac 装 Tailscale 并登录**同一账号**，确认状态 Connected、设备列表里能看到 Windows 那台；
-2. Mac 安装微软 **Windows App**，新建 PC：地址填 Windows 的 **Tailscale IP**；凭据新建一条并**绑定到这个 PC 的配置里**（只存不绑定会每次弹密码框，台账条目 10）；证书警告勾「始终信任」；
+2. Mac 安装微软 **Windows App**，新建 PC：地址填 Windows 的 **Tailscale IP**；凭据新建一条并**绑定到这个 PC 的配置里**（只存不绑定会每次弹密码框，台账条目 10）；确认目标主机的证书后再勾「始终信任」；
 3. 文件夹重定向挂一个 Mac 本地文件夹用于互传文件（跨桌面直接粘贴文件不通，台账条目 17/19）；
 4. Windows 的 Tailscale 设置开机自启，Mac 侧在「系统设置 → 通用 → 登录项」确认有 Tailscale（应用内复选框不回显是 bug，台账条目 16）。
 
 **验收**：双击该 PC 配置免密进入 Windows 桌面；在重定向文件夹里放一个文件，Windows 侧 `\\tsclient\` 下能看到。
 
-## 阶段 F：端到端总验收（全过才许宣布完成）
+## 阶段 F：端到端总验收（按已选功能逐项验收）
 
-- [ ] Windows 重启一次，后端无人干预自动起来（阶段 C 的验活命令再过一次）；
+- [ ] Windows 重启并登录任务绑定账号后，检查后端自动启动并通过 8189 HTTP 验活；
 - [ ] Mac 双击直连 RDP 免密进入；
 - [ ] 互传文件双向各一次成功；
 - [ ] 在 Mac 浏览器打开 Tailscale IP 的 8188 端口能进 ComfyUI；
 - [ ] 4 个模式工具都在 Windows 公共桌面、双账号登录都可见；
 - [ ] 向用户交代「报错协议」：以后工具出问题，他只需说一句「报错了」，由智能体读同目录日志定位处理；
-- [ ] 向用户交代唯一需要他维护的事：两台电脑的 Tailscale 保持登录在线。
+- [ ] 保持两台电脑的 Tailscale 在线，重启或变更会话后复查。两个任务依赖交互式登录，看门狗只检查端口。
 
 ---
 
 ## 阶段 G（可选）：本地部署 MiniMax H3
 
-按 `docs/h3-deployment.md` 操作：装 ComfyUI Desktop → 点 H3 的 T2V 模板下载模型 → R2V 另下 ref2va 模型与 turbo LoRA → 分辨率定 0.9、步数固定 20 步 → R2V 接线（ref_video 是 IMAGE，参考视频先拆帧）→ 换人走两段式。
+按 `docs/h3-deployment.md` 操作：装 ComfyUI Desktop → 核对 H3 的 T2V 模板、正式模型名及来源后下载模型 → R2V 另下 ref2va 模型与 turbo LoRA → 核对模板的分辨率映射（既有记录为 0.9）→ 按模板核对步数（官方示例默认 20 步，可选 Turbo 示例为 FL2VA 8 步、R2V 4 步） → R2V 接线（核对 ref_video 的输入类型，按既有记录先拆帧为 IMAGE）→ 换人走两段式。
 
-- 模型文件几十 GB，开始下载前跟用户确认存放磁盘。
+- 按模板版本和依赖清单核对下载量，开始下载前跟用户确认存放磁盘。
 - 渲染分工按 `docs/h3-deployment.md` 第 7 节：小样 Mac 本地出、批量长段 Windows 并行、最终 Mac 定稿。
 
 **验收**：T2V 跑通 5 秒成片；R2V 两段式跑通，人物未漂移、背景已换、动作保留。
