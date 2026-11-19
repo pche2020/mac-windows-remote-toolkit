@@ -93,7 +93,7 @@ Enable-NetFirewallRule -DisplayGroup 'Remote Desktop' -ErrorAction SilentlyConti
 Get-NetFirewallRule -DisplayGroup 'Remote Desktop' -ErrorAction SilentlyContinue |
   Get-NetFirewallAddressFilter |
   Set-NetFirewallAddressFilter -RemoteAddress @('LocalSubnet', $TailnetRange)
-Ok 'RDP on, NLA on, firewall limited to LAN + Tailnet (100.64.0.0/10). No public exposure.'
+Ok 'RDP on, NLA on, firewall limited to LAN + Tailnet. No public exposure.'
 
 # --- 3. Dedicated RDP account ----------------------------------------------
 if (-not $SkipRdpUser) {
@@ -159,8 +159,8 @@ if (-not $SkipComfy) {
     # 4c. portproxy 8188 -> 8189 (8188 cannot be bound by the backend itself
     #     when IP Helper owns it; the backend listens on 8189, proxy on 8188)
     netsh interface portproxy delete v4tov4 listenport=8188 listenaddress=0.0.0.0 2>$null | Out-Null
-    netsh interface portproxy add v4tov4 listenport=8188 listenaddress=0.0.0.0 connectport=8189 connectaddress=127.0.0.1 | Out-Null
-    Ok 'portproxy 8188 -> 127.0.0.1:8189'
+    netsh interface portproxy add v4tov4 listenport=8188 listenaddress=0.0.0.0 connectport=8189 connectaddress=localhost | Out-Null
+    Ok 'portproxy 8188 -> localhost:8189'
     # 4d. Firewall: LAN on 8188, Tailnet on 8188
     foreach ($r in @(
       @{ N = 'ComfyUI-LAN';     A = 'LocalSubnet' },

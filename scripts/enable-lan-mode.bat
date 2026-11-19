@@ -57,7 +57,7 @@ echo.
 
 echo [3/6] 设置端口转发 8188 转 8189 ...
 netsh interface portproxy delete v4tov4 listenport=8188 listenaddress=0.0.0.0 >nul 2>&1
-netsh interface portproxy add v4tov4 listenport=8188 listenaddress=0.0.0.0 connectport=8189 connectaddress=127.0.0.1 >> "%LOG%" 2>&1
+netsh interface portproxy add v4tov4 listenport=8188 listenaddress=0.0.0.0 connectport=8189 connectaddress=localhost >> "%LOG%" 2>&1
 if %errorlevel% neq 0 (
   set "FAILSTEP=步骤3 设置端口转发"
   set "FAILREASON=netsh 添加 portproxy 规则失败，netsh 的原始输出已写入日志"
@@ -101,7 +101,7 @@ if %errorlevel% neq 0 (
   goto :Fail
 )
 echo     等待后端就绪，最长约 2 分钟...
-powershell -NoProfile -Command "for($i=0;$i -lt 60;$i++){ try{ $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8189/system_stats' -TimeoutSec 2; if($r.StatusCode -eq 200){ exit 0 } }catch{}; Start-Sleep -Seconds 2 }; exit 1"
+powershell -NoProfile -Command "for($i=0;$i -lt 60;$i++){ try{ $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:8189/system_stats' -TimeoutSec 2; if($r.StatusCode -eq 200){ exit 0 } }catch{}; Start-Sleep -Seconds 2 }; exit 1"
 if %errorlevel% neq 0 (
   set "FAILSTEP=步骤5 启动后端"
   set "FAILREASON=后端在约 2 分钟内没有就绪；后端日志在 %SHARED%\comfy-backend.log，助手读日志即可定位"

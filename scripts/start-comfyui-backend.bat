@@ -30,7 +30,7 @@ if %errorlevel% neq 0 (
 )
 
 echo 正在等待后端就绪（最长约 2 分钟）...
-powershell -NoProfile -Command "for($i=0;$i -lt 60;$i++){ try{ $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8189/system_stats' -TimeoutSec 2; if($r.StatusCode -eq 200){ exit 0 } }catch{}; Start-Sleep -Seconds 2 }; exit 1"
+powershell -NoProfile -Command "for($i=0;$i -lt 60;$i++){ try{ $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:8189/system_stats' -TimeoutSec 2; if($r.StatusCode -eq 200){ exit 0 } }catch{}; Start-Sleep -Seconds 2 }; exit 1"
 if %errorlevel% neq 0 (
   echo.
   echo [失败] 后端在约 2 分钟内没有就绪。后端日志在：

@@ -10,7 +10,7 @@
 ### 1. ✅ 后端绑 8188 起不来，报 winerror 10013
 - **症状**：手动启动后端时绑定 8188 失败，`winerror 10013`（地址已被占用/禁止访问）。
 - **根因**：IP Helper 服务（iphlpsvc）占用了 8188——它也是后面 portproxy 转发要依赖的服务，杀不得。
-- **解法**：后端改绑 **8189**，对外用 portproxy `8188 → 127.0.0.1:8189`。此后成为固定拓扑，不要试图改回。
+- **解法**：后端改绑 **8189**，对外用 portproxy `8188 → localhost:8189`。此后成为固定拓扑，不要试图改回。
 
 ### 2. ✅ 后端起来了，但报一堆 Missing Models
 - **症状**：局域网打开 ComfyUI，工作流里模型全红/缺失。
@@ -34,7 +34,7 @@
 ### 6. ✅ 助手误判「ComfyUI 死了」——VM 的 curl 被代理劫持
 - **症状**：助手在自己环境里 curl `<Windows Tailscale IP>:8188` 得到空响应（curl 52），一度怀疑通道故障。
 - **根因**：助手 VM 的 `http_proxy` 环境变量把请求送去了出口代理，tailnet 地址根本没被真正访问；加 `--noproxy` 又没有直达路由。
-- **解法**：验活一律在 **Windows 主机侧**执行（如 `Invoke-WebRequest 127.0.0.1:8189/system_stats`），或请用户在 Mac 侧实测。**不要用助手 VM 的普通 curl 判断 tailnet 链路死活。**
+- **解法**：验活一律在 **Windows 主机侧**执行（如 `Invoke-WebRequest localhost:8189/system_stats`），或请用户在 Mac 侧实测。**不要用助手 VM 的普通 curl 判断 tailnet 链路死活。**
 
 ### 7. ✅ ComfyUI Desktop 里找不到模型目录
 - **症状**：Desktop 版（v0.42.1）左上角菜单里没有 Help → Open Folder，找不到模型该放哪。
@@ -75,7 +75,7 @@
 
 ### 14. ✅ 通道中断：Windows 主机离开了 tailnet（2026-10-21 12:47–15:51，已结案）
 - **症状**：12:47 前后助手经 SSH 的命令先变慢/返回不全，之后 SSH 持续失败（`proxy closed connection`）；同时发现 Mac 上 Tailscale 应用是关着的、打开显示 **Not Connected**。
-- **定位过程（已确认）**：15:43 用户在 Mac 上手动重连成功后，设备列表里 `hpc` 仍不在线 → 断点在 Windows 主机侧（主机离开了 tailnet）；15:51 用户在主机上手动重连 Tailscale，SSH 随即恢复。故障前最后的成功操作是远程关掉主账号会话的 Tailscale 界面进程（条目 15），与中断时间相邻，但**因果未证实**，主机为何离开 tailnet 未查明。
+- **定位过程（已确认）**：15:43 用户在 Mac 上手动重连成功后，设备列表里 `Windows 主机` 仍不在线 → 断点在 Windows 主机侧（主机离开了 tailnet）；15:51 用户在主机上手动重连 Tailscale，SSH 随即恢复。故障前最后的成功操作是远程关掉主账号会话的 Tailscale 界面进程（条目 15），与中断时间相邻，但**因果未证实**，主机为何离开 tailnet 未查明。
 - **影响面**：仅远程通道；主机本地服务未停——恢复后验活显示 ComfyUI 后端断网期间一直在跑（自启与看门狗不依赖网络）。
 - **恢复后实测**：SSH 执行、文件传输、ComfyUI 操控三件套闭环。
 - **经验**：①通道故障按「Mac 的 Tailscale 状态 → 设备列表看目标机是否在线 → 主机本地确认」分段定位；②助手经隧道的 SSH 长连接撑不过约 1–2 分钟（broken pipe），监控长任务用短连接轮询，不要开长会话；③ComfyUI 的 SaveVideo 在 history 的 outputs 里挂在 `images` 键下（不是 `videos`）。
