@@ -6,8 +6,6 @@
 
 这套配置 2026-10-20 ~ 2026-10-21 实战搭建、逐项实测通过，所有踩过的坑都记进了 `docs/troubleshooting.md`。
 
-![架构：Mac、加密隧道、Windows](assets/architecture.webp)
-
 ## 搭好后你得到什么
 
 - **Windows 电脑 24 小时待命**：ComfyUI 后端随登录自动启动，每 5 分钟有看门狗自检，挂了自动拉起。
@@ -17,11 +15,7 @@
 - **本地跑 MiniMax H3 生视频**：ComfyUI + INT8 量化，1280×736、5 秒已跑通；R2V 换人走两段式（步骤见 `docs/h3-deployment.md`）。
 - **安全**：没有任何端口暴露在公网上。所有通道只在「你的局域网」和「你自己的 Tailscale 私有网络」里开放。
 
-![ComfyUI 在 Windows 上跑，Mac 浏览器操作](assets/comfyui-remote.webp)
-
 ## 为什么这么做（优势）
-
-![人在沙发上用 Mac，算力在隔壁房间的 Windows 上跑](assets/advantages.webp)
 
 - **轻的归轻、重的归重**：Mac 只负责操作，Windows 的显卡跑重活，Mac 不发热、不卡、不掉电。
 - **在家在外一个样**：Tailscale 打通后，出差、咖啡厅和家里是同一套操作，不用再带两台电脑。
@@ -32,8 +26,6 @@
 
 ## 适用场景
 
-![在咖啡厅用 Mac，算力在家里](assets/scenarios.webp)
-
 - **本地跑 AI 视频 / 图片生成**：ComfyUI、视频模型这种吃显存的活，Mac 跑不动、云端按量又贵，家里有张显卡就别浪费。
 - **经常出差、但重活离不开台式机**：轻装出门，算力留在家里。
 - **Mac 剪辑、Windows 渲染的分工**：小样在 Mac 上出，正式版扔给 Windows 慢慢渲，Mac 继续剪下一条。
@@ -41,15 +33,11 @@
 
 ## 本地部署 MiniMax H3
 
-![本地用 MiniMax H3 生视频](assets/h3-generation.webp)
-
 MiniMax H3（2026 年 8 月开源，约 33B，全模态、原生带音频）：本地开源的只有 H3-Base，输出上限约 768p；想出 2K 得走官方 API。
 
 - 硬件：16G 显存 + 32G 内存走 INT8 量化能跑，1280×736、5 秒已跑通；M 系列 428B 即使 64G 内存也扛不动，本地视频主力就是 H3。
 - 部署：ComfyUI Desktop 点 H3 的 T2V 模板，约 53GB 模型一次下完；R2V 另下 ref2va 模型约 19GB + turbo LoRA 约 1.82GB。
 - 定论：分辨率定 0.9（1280×736），步数原生固定 20 步；R2V 的 ref_video 是 IMAGE 不是 VIDEO；换人必须两段式。
-
-![Mac 剪辑、Windows 渲染的分工](assets/h3-rendering.webp)
 
 - 渲染分工：小样 Mac 本地出，批量长段扔 Windows 并行渲，最终定稿回 Mac；NVENC 实测比 Mac 快约 1.4–1.5 倍，但隧道传 30MB 要 2–5 分钟，小文件来回传反而更慢。
 
@@ -92,7 +80,7 @@ mac-windows-remote-toolkit/
 ├── README.md                  # 你正在读的这份：总览与两种用法
 ├── AGENTS.md                  # 给 agent 读的执行手册（阶段 A→F + 启动词）
 ├── LICENSE                    # MIT
-├── assets/                    # 配图（封面、架构、ComfyUI 远程、工具包、优势、场景、H3 生成、H3 渲染）
+├── assets/                    # 封面图（cover.webp）
 ├── docs/
 │   ├── setup-guide.md         # 配置文档：从零到跑通的每一步与排障
 │   ├── troubleshooting.md     # 故障速查台账：全部踩坑记录（症状 → 根因 → 解法）
@@ -105,8 +93,6 @@ mac-windows-remote-toolkit/
     ├── start-comfyui-backend.bat # 桌面手动按钮：启动后端
     └── stop-comfyui-backend.bat  # 桌面手动按钮：关闭后端
 ```
-
-![工具包、日志与看门狗](assets/toolkit.webp)
 
 ## 安全边界
 
