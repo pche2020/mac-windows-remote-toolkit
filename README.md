@@ -2,8 +2,6 @@
 
 ![Mac 带出门，AI 在家跑](assets/cover.webp)
 
-**Linger 本地推理** · [Mac 和 Windows 独立配置、模型选择、一键安装及 Agent 手册](linger/README.md)
-
 让一台 Windows 电脑 24 小时开机待命：人在 Mac 上远程桌面操作它，AI 助手用 SSH 直接操作它（启停服务、跑 ComfyUI、传文件），在家里走局域网、在外面走 Tailscale 加密通道，**路由器保持无公网端口映射**。ComfyUI 局域网与 Tailnet 入口为 8188，由 Windows 主机内的 portproxy 转发至后端 8189。
 
 2026-10-20 ~ 2026-10-21 的搭建与故障记录见 `docs/troubleshooting.md`，历史记录显示 2026-10-27 后 8188 曾无响应。2026-11-19 15:05（Asia/Shanghai，CST），Mac 经 Tailscale 访问 8188，首页和 `/system_stats` 均返回 HTTP 200。Windows 本机 8189、portproxy 内部配置、工作流与模型生成均未验证。
